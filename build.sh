@@ -100,14 +100,24 @@ grub-mkstandalone -O x86_64-efi -o "$EFI_OUT" \
 
 # ── 校验 ───────────────────────────────────────────
 echo "[4/4] 校验"
-python3 - "$EFI_OUT" <<'PY'
-import sys
+python3 - "$EFI_OUT" "$GRUB_CFG" <<'PY'
+import sys, re
 data = open(sys.argv[1], 'rb').read()
+cfg  = open(sys.argv[2], encoding='utf-8').read()
+
+# 从配置里取第一个含中文的菜单标题作为探针，避免写死字符串
+probe = None
+for m in re.finditer(r'menuentry\s+"([^"]+)"', cfg):
+    label = m.group(1)
+    if any(ord(c) > 0x7e for c in label):
+        probe = label[:8]
+        break
+
 checks = {
     'grub.cfg 内嵌': b'grub.cfg' in data,
     '中文字库内嵌': b'cn.pf2' in data,
     '拉丁字库内嵌': b'ascii.pf2' in data,
-    '中文菜单文本': '网络安装'.encode() in data,
+    f'中文菜单文本({probe})': (probe.encode() in data) if probe else False,
 }
 for k, v in checks.items():
     print(f"  {'OK ' if v else 'FAIL'} {k}")
