@@ -80,6 +80,15 @@ mkdir -p "$MNT/EFI/BOOT"
 cp "$ROOT/dist/BOOTX64.EFI"      "$MNT/EFI/BOOT/BOOTX64.EFI"
 cp "$CACHE"                       "$MNT/netboot.xyz.efi"
 [ -f "$ROOT/docs/使用说明.txt" ] && cp "$ROOT/docs/使用说明.txt" "$MNT/使用说明.txt"
+
+# 本地缓存的内核（有就带上，没有就靠联网）
+if [ -d "$ROOT/images" ] && [ -n "$(ls -A "$ROOT/images" 2>/dev/null)" ]; then
+  echo "复制本地内核缓存 ..."
+  cp -r "$ROOT/images" "$MNT/images"
+else
+  echo "提示: images/ 为空，启动时将联网下载内核（需要网线）"
+  echo "      想做到全程无线，先跑 ./scripts/fetch-images.sh"
+fi
 sync
 
 echo
