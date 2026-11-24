@@ -63,6 +63,9 @@ echo "建立 MBR + FAT32 分区 ..."
 parted -s "$DEV" mklabel msdos
 parted -s "$DEV" mkpart primary fat32 1MiB 100%
 parted -s "$DEV" set 1 boot on
+# 分区类型标成 EFI 系统分区（0xEF）。严格固件只枚举 0xEF 的分区作为可启动项，
+# 默认的 0x0C（FAT32 LBA）在部分机器上会被跳过。
+sfdisk --part-type "$DEV" 1 ef 2>/dev/null || true
 sleep 1
 partprobe "$DEV" 2>/dev/null || true
 sleep 2
