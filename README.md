@@ -6,14 +6,13 @@
 
 ```
 ┌──────────────────────────────────────────────────────┐
-│  ① Debian 13 · 清华源 · 简体中文安装器                │
-│  ② Debian 13 · 中科大源 · 简体中文安装器              │
-│  ③ Alpine Linux · 超轻量 · 命令行安装（英文）         │
-│  ④ CentOS Stream 10 · 英文安装器（首次加载较慢）      │
-│  ⑤ 安装 Windows · 需自备 ISO 的 HTTP 地址             │
-│  ⑥ netboot.xyz · 90+ 系统 · 英文菜单                  │
-│  ⑦ 从本地硬盘启动                                     │
-│  ⑧ 重启                                               │
+│  ① Debian 13 · 简体中文安装器（全程可无线）           │
+│  ② Alpine Linux · 超轻量 · 命令行（全程可无线）       │
+│  ③ CentOS Stream 10 · 英文安装器（全程可无线）        │
+│  ④ 安装 Windows · 需自备 ISO 的 HTTP 地址             │
+│  ⑤ netboot.xyz · 90+ 系统 · 英文菜单（需网线）        │
+│  ⑥ 从本地硬盘启动                                     │
+│  ⑦ 重启                                               │
 └──────────────────────────────────────────────────────┘
 ```
 
@@ -26,6 +25,43 @@
 - U 盘 58 G 空间全空着，爱放什么放什么
 - 想试五个发行版，不用刻五次盘
 - 系统版本更新了，什么都不用改，它拉的就是最新的
+
+## 全程无线是怎么做到的
+
+默认的 netboot 方案有两个地方离不开网线：
+
+| 卡点 | 原因 | 本项目怎么解决 |
+|---|---|---|
+| GRUB 引导阶段 | GRUB 的无线驱动几乎为零，只有有线 SNP | 把内核和 initrd **放进 U 盘**，引导完全不联网 |
+| 安装器阶段 | Debian 官方 netboot 的 initrd **不含 non-free 无线固件** | 把固件**注入 initrd** |
+
+第二条是实测出来的。解包官方 `initrd.gz` 后：
+
+```
+iwlwifi.ko.xz        驱动在
+*.ucode              0 个            ← 没固件，网卡加载不了
+lib/firmware/        只有 regulatory.db
+```
+
+所以官方的 netboot 安装器在你的 Intel 网卡上**认得出硬件、加载不了驱动**，WiFi 用不了。
+
+`scripts/fetch-images.sh` 会：
+1. 下载 `firmware-iwlwifi` / `firmware-realtek` / `firmware-mediatek`
+2. 解出 `.ucode` 文件
+3. 塞进 initrd 的 `/usr/lib/firmware/`
+4. 重新打包并校验
+
+跑完 initrd 从 39 MB 变成 126 MB——大是大了点，但从 U 盘读本地文件是秒级的，而且安装器起来后 WiFi 就能用。
+
+```bash
+./scripts/fetch-images.sh          # 全部三个系统
+./scripts/fetch-images.sh debian   # 只做 Debian
+./scripts/fetch-images.sh --no-firmware   # 不注入固件（initrd 保持 39 MB）
+```
+
+想省空间可以改脚本顶部的 `FW_PACKAGES` 数组，只留你需要的固件包。
+
+> ⑤ netboot.xyz 那几项仍然需要网线——它跑在 iPXE 上，无线同样是零支持。
 
 ## 为什么菜单分中文和英文两部分
 
@@ -143,6 +179,7 @@ ${win_base_url}/x64/sources/boot.wim
 ├── build.sh               构建 EFI
 ├── install-usb.sh         写入 U 盘
 ├── src/grub.cfg           菜单源文件（改这里）
+├── scripts/fetch-images.sh 下载内核并注入无线固件
 ├── dist/                  构建产物
 ├── docs/
 │   ├── 发行版对照表.md     90+ 系统的中文名与一句话说明

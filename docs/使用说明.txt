@@ -11,53 +11,49 @@ netboot-cn · 中文网络启动盘
 3. 选 UEFI: 你的U盘名（不要选 Legacy / CSM）
 4. 中文菜单出来，方向键选，回车确认
 
-【必须插网线】
-GRUB 和 iPXE 都认不出笔记本的无线网卡。
-先插网线把安装器启动起来，进了系统再用 WiFi 就行。
+【无线能用吗】
+① ② ③ 全程无线可用（前提是做盘时跑过 scripts/fetch-images.sh）：
+  - 内核和 initrd 存在 U 盘里，引导阶段不联网
+  - 无线固件已注入 initrd，安装器里能直接连 WiFi
+⑤ netboot.xyz 那几项仍然要插网线，它跑在 iPXE 上，无线零支持。
 
 【菜单说明】
-  ① Debian 13 · 清华源 · 简体中文安装器
+  ① Debian 13 · 简体中文安装器（全程可无线）
      最稳的选择，软件库最大。装的时候在「软件选择」里
      取消 GNOME，勾 XFCE —— 低配机器会快很多。
 
-  ② Debian 13 · 中科大源 · 简体中文安装器
-     ① 连不上时换这个，内容完全一样，只是镜像站不同。
-
-  ③ Alpine Linux · 超轻量 · 命令行安装（英文）
+  ② Alpine Linux · 超轻量 · 命令行（全程可无线）
      最小 5 MB 起，老机器救星。安装是命令行的
      （敲 setup-alpine），没有图形界面。
 
-  ④ CentOS Stream 10 · 英文安装器
-     红帽系的上游滚动版。initrd 有 77 MB，首次加载会慢。
+  ③ CentOS Stream 10 · 英文安装器（全程可无线）
+     红帽系的上游滚动版。
 
-  ⑤ 安装 Windows · 需自备 ISO 的 HTTP 地址
+  ④ 安装 Windows · 需自备 ISO 的 HTTP 地址
      跳到 netboot.xyz 的 Windows 菜单。它不自带 Windows，
      需要你在局域网里用 HTTP 托管解压好的 ISO。
-     详细步骤：https://github.com/yaoxiaolinglong/netboot-cn
      没有 ISO 的话，这条用不了。
 
-  ⑥ netboot.xyz · 90+ 系统 · 英文菜单
+  ⑤ netboot.xyz · 90+ 系统 · 英文菜单（需网线）
      全部系统都在这里：Linux 33 个网络安装、39 个 Live CD、
      20 个救援工具、BSD、FreeDOS。
-     菜单是英文的 —— 这是 iPXE 引擎的限制，无法汉化。
-     中文对照表见仓库里的 docs/发行版对照表.md
+     菜单是英文的 —— iPXE 引擎的限制，无法汉化。
+     中文对照表见仓库 docs/发行版对照表.md
 
-  ⑦ 从本地硬盘启动（不想装系统时退出用）
-  ⑧ 重启
+  ⑥ 从本地硬盘启动（不想装系统时退出用）
+  ⑦ 重启
 
 【为什么菜单只有一部分是中文】
 本盘的引导层是 GRUB，我自己编译的，字库内嵌，能显示汉字。
-但 ⑥ 里面是 netboot.xyz，它用 iPXE 引擎，源码里字符渲染
+但 ⑤ 里面是 netboot.xyz，它用 iPXE 引擎，源码里字符渲染
 是逐字节的（src/core/console.c 的 putchar），没有 UTF-8 解码，
 物理上画不出汉字。
-
-所以：常用系统走中文菜单，冷门的走 netboot.xyz。
 
 【盘里有什么】
   EFI/BOOT/BOOTX64.EFI   4.3 MB   中文 GRUB 引导
   netboot.xyz.efi        1.2 MB   iPXE 兜底菜单
+  images/                本地内核缓存（有无皆可）
   使用说明.txt           本文件
-  剩下的 58 G 全空着，随你放
 
 【源码与更新】
 https://github.com/yaoxiaolinglong/netboot-cn
