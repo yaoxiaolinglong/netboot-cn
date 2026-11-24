@@ -33,7 +33,7 @@ GRUB 和 iPXE 都认不出笔记本的无线网卡。
   ⑤ 安装 Windows · 需自备 ISO 的 HTTP 地址
      跳到 netboot.xyz 的 Windows 菜单。它不自带 Windows，
      需要你在局域网里用 HTTP 托管解压好的 ISO。
-     详细步骤：https://github.com/<你的用户名>/netboot-cn
+     详细步骤：https://github.com/yaoxiaolinglong/netboot-cn
      没有 ISO 的话，这条用不了。
 
   ⑥ netboot.xyz · 90+ 系统 · 英文菜单
@@ -60,6 +60,6 @@ GRUB 和 iPXE 都认不出笔记本的无线网卡。
   剩下的 58 G 全空着，随你放
 
 【源码与更新】
-https://github.com/<你的用户名>/netboot-cn
+https://github.com/yaoxiaolinglong/netboot-cn
 
 生成时间：2026-11-24
